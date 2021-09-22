@@ -1,3 +1,5 @@
+[![Go](https://github.com/rkorkosz/go-dirstream/actions/workflows/go.yml/badge.svg)](https://github.com/rkorkosz/go-dirstream/actions/workflows/go.yml)
+
 # DirStream
 
 ## What DirStream is?
