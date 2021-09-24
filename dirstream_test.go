@@ -20,13 +20,17 @@ func TestDirReaderTwoFiles(t *testing.T) {
 
 	dr, err := NewDirReader(dir)
 	requireNoErr(t, err)
+	defer dr.Close()
 
 	expected := []byte("file 1 content\nfile 2 content\nmore file 2 content\n")
 	var buf bytes.Buffer
 	_, err = io.Copy(&buf, dr)
+	requireNoErr(t, err)
 	if !bytes.Equal(expected, buf.Bytes()) {
 		t.Errorf("want %s, got %s", string(expected), buf.String())
 	}
+	err = dr.Err()
+	requireNoErr(t, err)
 }
 
 func createFileWithContent(t *testing.T, dir, name string, content []byte) {

@@ -12,6 +12,7 @@ type DirReader struct {
 	fs          fs.FS
 	currentFile io.ReadCloser
 	files       chan string
+	err         error
 }
 
 // NewDirReader create a new instance of dir reader
@@ -29,12 +30,18 @@ func NewFSReader(fileSystem fs.FS) (*DirReader, error) {
 	}
 	go func() {
 		defer close(dr.files)
-		fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
+		err := fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
 			if d.Type().IsRegular() {
 				dr.files <- path
 			}
 			return nil
 		})
+		if err != nil {
+			dr.err = err
+		}
 	}()
 	err := dr.openNextFile()
 	return &dr, err
@@ -49,8 +56,14 @@ func (dr *DirReader) Read(p []byte) (n int, err error) {
 	return n, err
 }
 
+// Close closes currently opened file
 func (dr *DirReader) Close() error {
 	return dr.currentFile.Close()
+}
+
+// Err returns an error that may happen while walking the file system
+func (dr *DirReader) Err() error {
+	return dr.err
 }
 
 func (dr *DirReader) openNextFile() error {
